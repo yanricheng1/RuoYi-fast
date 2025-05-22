@@ -326,7 +326,7 @@ public class RoleServiceImpl implements IRoleService
     /**
      * 校验角色是否有数据权限
      * 
-     * @param roleId 角色id
+     * @param roleIds 角色id
      */
     @Override
     public void checkRoleDataScope(Long... roleIds)
