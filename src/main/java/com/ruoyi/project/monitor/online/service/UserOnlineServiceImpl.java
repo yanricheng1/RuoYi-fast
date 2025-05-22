@@ -4,8 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Deque;
 import java.util.List;
+
+import com.ruoyi.framework.redis.ShiroRedisCacheManager;
 import org.apache.shiro.cache.Cache;
-import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class UserOnlineServiceImpl implements IUserOnlineService
     private OnlineSessionDAO onlineSessionDAO;
 
     @Autowired
-    private EhCacheManager ehCacheManager;
+    private ShiroRedisCacheManager shiroCacheManager;
 
     /**
      * 通过会话序号查询信息
@@ -94,7 +95,7 @@ public class UserOnlineServiceImpl implements IUserOnlineService
     /**
      * 查询会话集合
      * 
-     * @param pageUtilEntity 分页参数
+     * @param userOnline 分页参数
      */
     @Override
     public List<UserOnline> selectUserOnlineList(UserOnline userOnline)
@@ -128,7 +129,7 @@ public class UserOnlineServiceImpl implements IUserOnlineService
     @Override
     public void removeUserCache(String loginName, String sessionId)
     {
-        Cache<String, Deque<Serializable>> cache = ehCacheManager.getCache(ShiroConstants.SYS_USERCACHE);
+        Cache<String, Deque<Serializable>> cache = shiroCacheManager.getCache(ShiroConstants.SYS_USERCACHE);
         Deque<Serializable> deque = cache.get(loginName);
         if (StringUtils.isEmpty(deque) || deque.size() == 0)
         {
@@ -140,7 +141,7 @@ public class UserOnlineServiceImpl implements IUserOnlineService
     /**
      * 查询会话集合
      * 
-     * @param online 会话信息
+     * @param expiredDate 会话信息
      */
     @Override
     public List<UserOnline> selectOnlineByExpired(Date expiredDate)

@@ -6,9 +6,11 @@ import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
 import javax.servlet.Filter;
+
+import com.ruoyi.framework.redis.ShiroRedisCacheManager;
 import org.apache.commons.io.IOUtils;
-import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.config.ConfigurationException;
 import org.apache.shiro.io.ResourceUtils;
@@ -145,25 +147,29 @@ public class ShiroConfig
     @Value("${csrf.whites: ''}")
     private String csrfWhites;
 
+
+    @Resource
+    private ShiroRedisCacheManager shiroRedisCacheManager;
+
     /**
      * 缓存管理器 使用Ehcache实现
      */
-    @Bean
-    public EhCacheManager getEhCacheManager()
-    {
-        net.sf.ehcache.CacheManager cacheManager = net.sf.ehcache.CacheManager.getCacheManager("ruoyi");
-        EhCacheManager em = new EhCacheManager();
-        if (StringUtils.isNull(cacheManager))
-        {
-            em.setCacheManager(new net.sf.ehcache.CacheManager(getCacheManagerConfigFileInputStream()));
-            return em;
-        }
-        else
-        {
-            em.setCacheManager(cacheManager);
-            return em;
-        }
-    }
+//    @Bean
+//    public EhCacheManager getEhCacheManager()
+//    {
+//        net.sf.ehcache.CacheManager cacheManager = net.sf.ehcache.CacheManager.getCacheManager("ruoyi");
+//        EhCacheManager em = new EhCacheManager();
+//        if (StringUtils.isNull(cacheManager))
+//        {
+//            em.setCacheManager(new net.sf.ehcache.CacheManager(getCacheManagerConfigFileInputStream()));
+//            return em;
+//        }
+//        else
+//        {
+//            em.setCacheManager(cacheManager);
+//            return em;
+//        }
+//    }
 
     /**
      * 返回配置文件流 避免ehcache配置文件一直被占用，无法完全销毁项目重新部署
@@ -194,7 +200,7 @@ public class ShiroConfig
      * 自定义Realm
      */
     @Bean
-    public UserRealm userRealm(EhCacheManager cacheManager)
+    public UserRealm userRealm(ShiroRedisCacheManager cacheManager)
     {
         UserRealm userRealm = new UserRealm();
         userRealm.setAuthorizationCacheName(Constants.SYS_AUTH_CACHE);
@@ -230,7 +236,7 @@ public class ShiroConfig
     {
         OnlineWebSessionManager manager = new OnlineWebSessionManager();
         // 加入缓存管理器
-        manager.setCacheManager(getEhCacheManager());
+        manager.setCacheManager(shiroRedisCacheManager);
         // 删除过期的session
         manager.setDeleteInvalidSessions(true);
         // 设置全局session超时时间
@@ -260,7 +266,7 @@ public class ShiroConfig
         // 记住我
         securityManager.setRememberMeManager(rememberMe ? rememberMeManager() : null);
         // 注入缓存管理器;
-        securityManager.setCacheManager(getEhCacheManager());
+        securityManager.setCacheManager(shiroRedisCacheManager);
         // session管理器
         securityManager.setSessionManager(sessionManager());
         return securityManager;
@@ -415,7 +421,7 @@ public class ShiroConfig
     public KickoutSessionFilter kickoutSessionFilter()
     {
         KickoutSessionFilter kickoutSessionFilter = new KickoutSessionFilter();
-        kickoutSessionFilter.setCacheManager(getEhCacheManager());
+        kickoutSessionFilter.setCacheManager(shiroRedisCacheManager);
         kickoutSessionFilter.setSessionManager(sessionManager());
         // 同一个用户最大的会话数，默认-1无限制；比如2的意思是同一个用户允许最多同时两个人登录
         kickoutSessionFilter.setMaxSession(maxSession);

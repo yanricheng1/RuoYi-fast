@@ -45,6 +45,9 @@ user:
 
 # Spring配置
 spring:
+  redis:
+    host: 127.0.0.1
+    port: 6379
   # 模板引擎
   thymeleaf:
     mode: HTML
